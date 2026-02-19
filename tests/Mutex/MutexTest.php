@@ -127,10 +127,10 @@ class MutexTest extends TestCase
                 $file = fopen(vfsStream::url('test/lock'), 'w');
                 $lock = new FlockMutex($file, 3);
 
-                return self::withFlockStrategy(
-                    $lock,
-                    \Closure::bind(static fn () => FlockMutex::STRATEGY_PCNTL, null, FlockMutex::class)()
-                );
+                $strategy = new \ReflectionClass(FlockMutex::class)
+                    ->getConstant('STRATEGY_PCNTL');
+
+                return self::withFlockStrategy($lock, $strategy);
             }];
         }
 
@@ -138,10 +138,10 @@ class MutexTest extends TestCase
             $file = fopen(vfsStream::url('test/lock'), 'w');
             $lock = new FlockMutex($file, 3);
 
-            return self::withFlockStrategy(
-                $lock,
-                \Closure::bind(static fn () => FlockMutex::STRATEGY_LOOP, null, FlockMutex::class)()
-            );
+            $strategy = new \ReflectionClass(FlockMutex::class)
+                ->getConstant('STRATEGY_LOOP');
+
+            return self::withFlockStrategy($lock, $strategy);
         }];
 
         if (extension_loaded('sysvsem')) {
