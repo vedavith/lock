@@ -19,9 +19,11 @@ trait RedisCompatibilityTrait
 {
     /**
      * @param list<mixed> $args
+     *
+     * @return mixed
      */
     #[\Override] // @phpstan-ignore method.childParameterType
-    public function eval($script, $args = [], $numKeys = 0): mixed
+    public function eval($script, $args = [], $numKeys = 0)
     {
         return $this->_eval($script, $args, $numKeys);
     }
