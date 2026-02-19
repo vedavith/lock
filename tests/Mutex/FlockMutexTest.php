@@ -41,7 +41,7 @@ class FlockMutexTest extends TestCase
      */
     private static function getPrivateConstant(string $class, string $name): string
     {
-        return new \ReflectionClass($class)->getConstant($name);
+        return (new \ReflectionClass($class))->getConstant($name);
     }
 
     /**

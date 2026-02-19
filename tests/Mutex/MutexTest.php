@@ -127,7 +127,7 @@ class MutexTest extends TestCase
                 $file = fopen(vfsStream::url('test/lock'), 'w');
                 $lock = new FlockMutex($file, 3);
 
-                $strategy = new \ReflectionClass(FlockMutex::class)
+                $strategy = (new \ReflectionClass(FlockMutex::class))
                     ->getConstant('STRATEGY_PCNTL');
 
                 return self::withFlockStrategy($lock, $strategy);
@@ -138,7 +138,7 @@ class MutexTest extends TestCase
             $file = fopen(vfsStream::url('test/lock'), 'w');
             $lock = new FlockMutex($file, 3);
 
-            $strategy = new \ReflectionClass(FlockMutex::class)
+            $strategy = (new \ReflectionClass(FlockMutex::class))
                 ->getConstant('STRATEGY_LOOP');
 
             return self::withFlockStrategy($lock, $strategy);
