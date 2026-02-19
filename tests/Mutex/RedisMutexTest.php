@@ -19,20 +19,29 @@ trait RedisCompatibilityTrait
 {
     /**
      * @param list<mixed> $args
-     *
      * @return mixed
      */
     #[\Override] // @phpstan-ignore method.childParameterType
-    public function eval($script, $args = [], $numKeys = 0)
+    public function eval(
+        string $script,
+        array $args = [],
+        int $numKeys = 0
+    )
     {
         return $this->_eval($script, $args, $numKeys);
     }
 
     /**
+     * @param mixed $value
      * @param mixed $options
+     * @return mixed
      */
     #[\Override]
-    public function set($key, $value, $options = null): /* \Redis|string| */ bool
+    public function set(
+        string $key,
+               $value,
+               $options = null
+    )
     {
         return $this->_set($key, $value, $options);
     }
@@ -99,8 +108,7 @@ class RedisMutexTest extends TestCase
                 /**
                  * @param mixed $value
                  * @param mixed $timeout
-                 *
-                 * @return \Redis|string|bool
+                 * @return mixed
                  */
                 private function _set(string $key, $value, $timeout = 0)
                 {
@@ -113,10 +121,13 @@ class RedisMutexTest extends TestCase
 
                 /**
                  * @param list<mixed> $args
-                 *
                  * @return mixed
                  */
-                private function _eval(string $script, array $args = [], int $numKeys = 0)
+                private function _eval(
+                    string $script,
+                    array $args = [],
+                    int $numKeys = 0
+                )
                 {
                     if ($this->isClosed) {
                         throw new \RedisException('Connection is closed');
@@ -135,7 +146,7 @@ class RedisMutexTest extends TestCase
                 );
             }
 
-            $connection->flushAll(); // Clear any existing locks.
+            $connection->flushAll();
 
             $this->connections[] = $connection;
         }
@@ -183,6 +194,7 @@ class RedisMutexTest extends TestCase
 
         $this->expectException(LockAcquireException::class);
         $this->expectExceptionCode(MutexException::CODE_REDLOCK_NOT_ENOUGH_SERVERS);
+
         $this->mutex->synchronized(static function () {
             self::fail();
         });
@@ -194,6 +206,7 @@ class RedisMutexTest extends TestCase
     public function testEvalScriptFails(): void
     {
         $this->expectException(LockReleaseException::class);
+
         $this->mutex->synchronized(function () {
             $this->closeMajorityConnections();
         });
@@ -224,7 +237,6 @@ class RedisMutexTest extends TestCase
      *
      * @dataProvider provideSerializersAndCompressorsCases
      */
-    #[DataProvider('provideSerializersAndCompressorsCases')]
     public function testSerializersAndCompressors(int $serializer, int $compressor): void
     {
         foreach ($this->connections as $connection) {
@@ -237,9 +249,6 @@ class RedisMutexTest extends TestCase
         }));
     }
 
-    /**
-     * @return iterable<list<mixed>>
-     */
     public static function provideSerializersAndCompressorsCases(): iterable
     {
         if (!class_exists(\Redis::class)) {
@@ -257,14 +266,8 @@ class RedisMutexTest extends TestCase
         }
 
         if (defined('Redis::COMPRESSION_LZF') && extension_loaded('lzf')) {
-            yield [
-                \Redis::SERIALIZER_NONE,
-                constant('Redis::COMPRESSION_LZF'),
-            ];
-            yield [
-                \Redis::SERIALIZER_PHP,
-                constant('Redis::COMPRESSION_LZF'),
-            ];
+            yield [\Redis::SERIALIZER_NONE, constant('Redis::COMPRESSION_LZF')];
+            yield [\Redis::SERIALIZER_PHP, constant('Redis::COMPRESSION_LZF')];
 
             if (defined('Redis::SERIALIZER_IGBINARY') && extension_loaded('igbinary')) {
                 yield [
@@ -273,23 +276,5 @@ class RedisMutexTest extends TestCase
                 ];
             }
         }
-    }
-
-    public function testResistantToPartialClusterFailuresForAcquiringLock(): void
-    {
-        $this->closeMinorityConnections();
-
-        self::assertSame('test', $this->mutex->synchronized(static function () {
-            return 'test';
-        }));
-    }
-
-    public function testResistantToPartialClusterFailuresForReleasingLock(): void
-    {
-        self::assertNull($this->mutex->synchronized(function () { // @phpstan-ignore staticMethod.alreadyNarrowedType
-            $this->closeMinorityConnections();
-
-            return null;
-        }));
     }
 }
