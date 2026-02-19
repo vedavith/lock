@@ -46,7 +46,6 @@ class FlockMutexTest extends TestCase
 
     /**
      * Helper to set a non-public FlockMutex strategy without Liberator.
-     *
      */
     private function withStrategy(FlockMutex $mutex, string $strategy): FlockMutex
     {
