@@ -46,11 +46,12 @@ class FlockMutexTest extends TestCase
 
     /**
      * Helper to set a non-public FlockMutex strategy without Liberator.
+     * @throws \ReflectionException
      */
     private function withStrategy(FlockMutex $mutex, string $strategy): FlockMutex
     {
         $reflection = new \ReflectionClass($mutex);
-        $property = $reflection->getProperty($strategy);
+        $property = $reflection->getProperty('strategy');
 
         if (method_exists($property, 'setAccessible')) {
             $property->setAccessible(true);
