@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Malkusch\Lock\Tests\Mutex;
 
-use Eloquent\Liberator\Liberator;
 use Malkusch\Lock\Exception\DeadlineException;
 use Malkusch\Lock\Exception\LockAcquireTimeoutException;
 use Malkusch\Lock\Mutex\FlockMutex;
@@ -28,7 +27,22 @@ class FlockMutexTest extends TestCase
 
         $this->file = LockUtil::getInstance()->makeRandomTemporaryFilePath('flock');
         touch($this->file);
-        $this->mutex = Liberator::liberate(new FlockMutex(fopen($this->file, 'r'), 1)); // @phpstan-ignore assign.propertyType
+        $this->mutex = $this->withStrategy(
+            new FlockMutex(fopen($this->file, 'r'), 1),
+            \Closure::bind(static fn () => FlockMutex::STRATEGY_LOOP, null, FlockMutex::class)()
+        );
+    }
+
+    /**
+     * Helper to set a non-public FlockMutex strategy without Liberator.
+     */
+    private function withStrategy(FlockMutex $mutex, string $strategy): FlockMutex
+    {
+        \Closure::bind(static function () use ($mutex, $strategy): void {
+            $mutex->strategy = $strategy;
+        }, null, FlockMutex::class)();
+
+        return $mutex;
     }
 
     #[\Override]
