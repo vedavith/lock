@@ -53,7 +53,7 @@ class FlockMutexTest extends TestCase
         $reflection = new \ReflectionClass($mutex);
         $property = $reflection->getProperty('strategy');
 
-        if (method_exists($property, 'setAccessible')) {
+        if (\PHP_VERSION_ID < 80100) {
             $property->setAccessible(true);
         }
 
